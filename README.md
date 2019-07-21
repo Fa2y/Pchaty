@@ -1,4 +1,3 @@
-#PCHATY 
+# PCHATY 
 
- a chat using python 
-
+a chat using python implementing Event-driven architecture
