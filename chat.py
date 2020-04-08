@@ -1,7 +1,7 @@
 import socket
 from collections import deque
 
-HOST = 'thehappybit-pc'
+HOST = 'Fa2y'
 PORT = 4040
 
 def create_listen_socket(host, port):
@@ -116,5 +116,13 @@ class Room(object):
 		return self.self
 	def setstate(self,state):
 		self.state = state
+
+class ChatException(Exception):
+    """Exception Class for Chat"""
+    pass
+
+class ClientExsit(ChatException):
+    """Client name duplicate Exception"""
+    pass
 
 		

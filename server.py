@@ -13,7 +13,11 @@ def create_client(sock):
 	client = chat.Client(sock)
 	recvd = client.sock.recv(4096)
 	if recvd:
-		client.setname((recvd.decode('utf-8').split('\0'))[0])
+		client_name = (recvd.decode('utf-8').split('\0'))[0]
+		for clt in clients.values():
+			if clt.getname() == client_name:
+				raise chat.ClientExsit()
+		client.setname(client_name)
 	return client
 	#SimpleNamespace(sock=sock,rest=bytes(),send_queue=deque())
 
@@ -30,12 +34,16 @@ def send_client_msg(msg,name):
 		if name == client.getname():
 			client.send_queue.append(data)
 			poll.register(client.sock,select.POLLOUT)
+
 def getclientsnames():
 	return [c.getname() for c in clients.values()]
+
 def getroomsnames():
 	return [r.getname() for r in rooms.values()]
+
 def getchannelsnames():
 	return [ch.getname() for ch in channels.values()]
+
 def printnames(cmd):
 	if cmd == 'channels':
 		chs = getchannelsnames()
@@ -78,9 +86,17 @@ if __name__ == '__main__':
 				client_sock,addr = listen_sock.accept()
 				client_sock.setblocking(False)
 				fd = client_sock.fileno()
-				clients[fd] = create_client(client_sock)
-				poll.register(fd, select.POLLIN)
-				print('Connection from {}'.format(addr))
+				print(fd)
+				try:
+					clients[fd] = create_client(client_sock)
+					resp_msg = chat.prep_msg("Succesful!")
+				except chat.ClientExsit :
+					print('Client name duplicate!')
+					resp_msg = chat.prep_msg("Error:duplicate")
+				client_sock.send(resp_msg)
+				if b"Succesful" in resp_msg :
+					poll.register(fd, select.POLLIN)
+					print('Connection from {}'.format(addr))
 
 			# Handle received data on socket
 			elif event & select.POLLIN:
@@ -121,7 +137,7 @@ if __name__ == '__main__':
 						msg = '{} : {}: {}'.format(client.getname(),addr, msg)
 						print(msg)
 						broadcast_msg(msg)
-						send_client_msg(msg,client.getname())
+						# send_client_msg(msg,client.getname())
 				print(clients,channels,rooms)
 
 			# Send message to ready client

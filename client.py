@@ -1,21 +1,28 @@
 import sys, socket, threading
 import chat
 
-HOST = 'thehappybit-pc'
+HOST = 'Fa2y'
 PORT = chat.PORT
 def start():
-	print("entry your name : ")
-	name = input()
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	sock.connect((HOST, PORT))
-	client = chat.Client(sock)
-	client.setname(name)
-	try:
-		chat.send_msg(sock,client.getname())
-	except (BrokenPipeError, ConnectionError):
-		sys.stdout.flush()
-	print('Connected to {}:{}'.format(HOST, PORT))
-	return client
+	while True:
+		print("entry your name : ")
+		name = input()
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		sock.connect((HOST, PORT))
+		client = chat.Client(sock)
+		client.setname(name)
+		try:
+			chat.send_msg(sock,client.getname())
+			resp = chat.recv_msg(sock)
+			if 'Error:duplicate' in resp:
+				raise chat.ClientExsit()
+		except (BrokenPipeError, ConnectionError):
+			sys.stdout.flush()
+		except chat.ClientExsit:
+			print("User with this name already exist")
+			continue
+		print('Connected to {}:{}'.format(HOST, PORT))
+		return client
 
 def handle_input(sock):
 	""" Prompt user for message and send it to server """
