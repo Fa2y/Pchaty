@@ -66,6 +66,19 @@ class mainForm(npyscreen.FormBaseNew):
 			relx       = terminal_dimensions()[1]-12,
 			rely       = terminal_dimensions()[0]-5,
 		)
+		new_handlers = {
+			# exit
+            "^Q": self.exit_func,
+            155: self.exit_func,
+            curses.ascii.ESC: self.exit_func,
+
+			# send message
+            "^S": self.widget_sendmsg.whenPressed,
+            curses.ascii.alt(curses.ascii.NL): self.widget_sendmsg.whenPressed,
+            curses.ascii.alt(curses.KEY_ENTER): self.widget_sendmsg.whenPressed
+
+            }
+		self.add_handlers(new_handlers)
 		self.widget_input.resize
 		thread = threading.Thread(target=self.Waiting_msgs)
 		thread.daemon = True
@@ -87,6 +100,8 @@ class mainForm(npyscreen.FormBaseNew):
 					CLIEN.getsock().close()
 				except AttributeError:
 					pass
+	def exit_func(self, _input):
+		exit(0)
 
 	def parse_msg(self,msg):
 		return msg.split(":")[0]+":"+msg.split(":")[2][3:-1]
@@ -96,7 +111,7 @@ class Column(npyscreen.BoxTitle):
         self.max_height = int(0.73 * terminal_dimensions()[0])
 
 class SendMsg(npyscreen.ButtonPress):
-	def whenPressed(self):
+	def whenPressed(self,event):
 		if self.parent.widget_input.value:
 			try:
 				chat.send_msg(CLIENT.getsock(), self.parent.widget_input.value)  # Blocks until sent
@@ -115,9 +130,6 @@ class InputBox(npyscreen.BoxTitle):
 def terminal_dimensions():
     return curses.initscr().getmaxyx()
 
-class msgLog(npyscreen.MultiLineEdit):
-	def display_value(self,vl):
-		return "Username : %s" %vl
 
 
 class loginForm(npyscreen.ActionPopup):
