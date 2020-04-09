@@ -1,6 +1,6 @@
 import npyscreen, curses
 import sys, socket, threading, time
-import chat
+import chat, ssl
 
 
 HOST = "Fa2y"
@@ -146,6 +146,7 @@ class loginForm(npyscreen.ActionPopup):
 		self.server1 = self.add(npyscreen.TitleText,name = 'Server : ', value = 'Fa2y')
 		self.port = self.add(npyscreen.TitleText,name = 'Port : ', value = '4040')
 		self.nick = self.add(npyscreen.TitleText,name = 'NickName : ')
+		self.ssl = self.add(npyscreen.TitleSelectOne, values=["SSL (Safe)","No SSL (Not safe)"],name = "What connection type you want to use?")
 	def on_ok(self):
 		#Connect
 		global HOST, PORT, CLIENT, CLIENT_READY
@@ -156,6 +157,13 @@ class loginForm(npyscreen.ActionPopup):
 		except:
 			npyscreen.notify_wait("Server is down or the setting are wrong, try again...")
 			return 1
+		if self.ssl.value[0] == 0:
+			try:
+				context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+				context.load_verify_locations('certs/cert.pem')
+				sock = context.wrap_socket(sock,server_hostname="PChaty")
+			except ConnectionError:
+				npyscreen.notify_wait("SSL Connection Error:Are you sure the server use ssl")
 		client = chat.Client(sock)
 		client.setname(self.nick.value)
 		try:
