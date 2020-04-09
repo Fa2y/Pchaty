@@ -1,5 +1,6 @@
 import select
 import chat
+import sys
 from types import SimpleNamespace
 from collections import deque
 
@@ -63,7 +64,10 @@ def printnames(cmd):
 
 
 if __name__ == '__main__':
-	listen_sock = chat.create_listen_socket(HOST, PORT)
+	if len(sys.argv)>1 and sys.argv[1] == '-ssl':
+		listen_sock = chat.create_listen_socket(HOST, PORT,s=True)
+	else:
+		listen_sock = chat.create_listen_socket(HOST, PORT,s=False)
 	poll = select.poll()
 	poll.register(listen_sock, select.POLLIN)
 	addr = listen_sock.getsockname()
@@ -84,7 +88,6 @@ if __name__ == '__main__':
 			# Accept new connection, add client to clients dict
 			elif fd == listen_sock.fileno():
 				client_sock,addr = listen_sock.accept()
-				client_sock.setblocking(False)
 				fd = client_sock.fileno()
 				print(fd)
 				try:

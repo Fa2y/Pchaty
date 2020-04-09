@@ -1,18 +1,21 @@
 import sys, socket, threading
-import chat
+import chat, ssl
 
 HOST = 'Fa2y'
 PORT = chat.PORT
 def start():
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	sock.connect((HOST, PORT))
+	if len(sys.argv)>1 and sys.argv[1] == '-ssl':
+		context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+		context.load_verify_locations('certs/cert.pem')
+		sock = context.wrap_socket(sock,server_hostname="PChaty")
+	client = chat.Client(sock)
 	while True:
 		print("entry your name : ")
 		name = input()
-		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		sock.connect((HOST, PORT))
-		client = chat.Client(sock)
-		client.setname(name)
 		try:
-			chat.send_msg(sock,client.getname())
+			chat.send_msg(sock,name)
 			resp = chat.recv_msg(sock)
 			if 'Error:duplicate' in resp:
 				raise chat.ClientExsit()
@@ -22,6 +25,7 @@ def start():
 			print("User with this name already exist")
 			continue
 		print('Connected to {}:{}'.format(HOST, PORT))
+		client.setname(name)
 		return client
 
 def handle_input(sock):

@@ -1,15 +1,19 @@
-import socket
+import socket, ssl
 from collections import deque
 
 HOST = 'Fa2y'
 PORT = 4040
 
-def create_listen_socket(host, port):
+def create_listen_socket(host, port,s = False):
     """ Setup the sockets our server will receive connection requests on """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind((host, port))
     sock.listen(100)
+    if s:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain('certs/cert.pem', 'certs/cert.priv')
+        return context.wrap_socket(sock, server_side=True)
     return sock
 
 def parse_recvd_data(data):
