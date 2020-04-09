@@ -38,6 +38,8 @@ def handle_input(sock):
 		except (BrokenPipeError, ConnectionError):
 			sys.stdout.flush()
 			break
+def parse_msg(msg):
+	return msg.split(":")[0]+":"+msg.split(":")[2][3:-1]
 
 if __name__ == '__main__':
 	client = start()
@@ -52,7 +54,7 @@ if __name__ == '__main__':
 		try:
 			(msgs, rest) = chat.recv_msgs(sock, rest)  # blocks
 			for msg in msgs:
-				print(msg)
+				print(parse_msg(msg))
 		except ConnectionError:
 			print('Connection to server closed')
 			sock.close()
