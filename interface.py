@@ -111,7 +111,7 @@ class Column(npyscreen.BoxTitle):
         self.max_height = int(0.73 * terminal_dimensions()[0])
 
 class SendMsg(npyscreen.ButtonPress):
-	def whenPressed(self,event):
+	def whenPressed(self, event=None):
 		if self.parent.widget_input.value:
 			try:
 				chat.send_msg(CLIENT.getsock(), self.parent.widget_input.value)  # Blocks until sent
